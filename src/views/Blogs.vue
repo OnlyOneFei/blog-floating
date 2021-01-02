@@ -1,87 +1,66 @@
 <template>
     <div>
-        <!--外层容器-->
-        <el-container>
-            <!--头部-->
-            <el-header>
-                <el-row :gutter="10">
-                    <el-col :xs="2" :sm="4" :md="4" :lg="4" :xl="4">
-                        <div class="grid-content bg-purple">
-                            头像
-                        </div>
-                    </el-col>
-                    <el-col :xs="6" :sm="8" :md="8" :lg="8" :xl="10">
-                        <div class="grid-content bg-purple-light">
-                            <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
-                                <el-menu-item index="1">首页</el-menu-item>
-                                <el-submenu index="2">
-                                    <template slot="title">分类</template>
-                                    <el-menu-item index="2-1">选项1</el-menu-item>
-                                    <el-menu-item index="2-2">选项2</el-menu-item>
-                                    <el-menu-item index="2-3">选项3</el-menu-item>
-                                    <el-submenu index="2-4">
-                                        <template slot="title">选项4</template>
-                                        <el-menu-item index="2-4-1">选项1</el-menu-item>
-                                        <el-menu-item index="2-4-2">选项2</el-menu-item>
-                                        <el-menu-item index="2-4-3">选项3</el-menu-item>
-                                    </el-submenu>
-                                </el-submenu>
-                                <el-menu-item index="3">列表</el-menu-item>
-                                <el-menu-item index="4">
-                                    关于我
-                                </el-menu-item>
-                            </el-menu>
-                        </div>
-                    </el-col>
-                    <el-col :xs="2" :sm="4" :md="4" :lg="4" :xl="4">
-                        <div class="grid-content bg-purple">
-                            间隔
-                        </div>
-                    </el-col>
-                    <el-col :xs="4" :sm="6" :md="8" :lg="8" :xl="4">
-                        <div class="grid-content bg-purple-light">
-                            <el-input placeholder="请输入内容" v-model="input" clearable suffix-icon="el-icon-search"></el-input>
-                        </div>
-                    </el-col>
-                </el-row>
-            </el-header>
-            <!--主要内容区-->
-            <el-main>
-
-                主要内容区
-
-            </el-main>
-            <!--底部-->
-            <el-footer>
-
-                底部
-            </el-footer>
-
-        </el-container>
+        <!--引入公共头部-->
+        <Header></Header>
+        <el-timeline>
+            <el-timeline-item :timestamp="blog.insertTime" placement="top" v-for="blog in blogs">
+                <el-card>
+                    <router-link :to="{name: 'BlogDetail', params:{blogId:blog.id}}">
+                        <h4>{{blog.title}}</h4>
+                    </router-link>
+                    <p>{{blog.description}}</p>
+                </el-card>
+            </el-timeline-item>
+        </el-timeline>
+        <el-pagination class="f-page"
+                       background
+                       layout="prev, pager, next"
+                       :current-page="pageNo"
+                       :page-size="pageSize"
+                       :total="total"
+                       @current-change=page
+        >
+        </el-pagination>
     </div>
 </template>
 
 <script>
+    import Header from "../components/Header"
+    // 声明
     export default {
+        name: "Blogs.vue",
+        components: {Header},
         data() {
             return {
-                activeIndex: '1',
-                activeIndex2: '1'
-            };
+                blogs: {},
+                pageNo: 1,
+                total: 0,
+                pageSize: 5
+            }
         },
         methods: {
-            handleSelect(key, keyPath) {
-                console.log(key, keyPath);
+            page(pageNo) {
+                const _this = this;
+                // 请求分页接口，并将查询结果进行赋值。
+                _this.$axios.get("/blog/blogs?pageNo=" + pageNo).then(res => {
+                    _this.blogs = res.data.data.records;
+                    _this.total = res.data.data.total;
+                    _this.pageSize = res.data.data.size;
+                    _this.pageNo = res.data.data.current;
+                })
             }
+        },
+        // 页面渲染时加载的函数
+        created() {
+            this.page(1);
         }
     }
 </script>
 
 <style scoped>
-    .el-header, .el-footer {
+    /*css 样式设置*/
+    .f-page {
+        margin: 0 auto;
         text-align: center;
-        /*默认60px*/
-        line-height: 60px;
     }
-
 </style>
